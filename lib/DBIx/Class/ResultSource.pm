@@ -1621,7 +1621,8 @@ sub _resolve_join {
                -alias => $as,
                -relation_chain_depth => ( $seen->{-relation_chain_depth} || 0 ) + 1,
              },
-             scalar $self->_resolve_condition($rel_info->{cond}, $as, $alias, $join)
+             scalar $self->_resolve_condition($rel_info->{cond}, $as, $alias, $join),
+             $rel_info->{attrs}
           ];
   }
 }

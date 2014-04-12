@@ -3511,10 +3511,7 @@ sub _resolved_attrs {
       $join = $self->_merge_joinpref_attr( $join, $attrs->{prefetch} );
     }
 
-    $attrs->{from} =    # have to copy here to avoid corrupting the original
-      [
-        @{ $attrs->{from} },
-        $source->_resolve_join(
+    my @result = $source->_resolve_join(
           $join,
           $alias,
           { %{ $attrs->{seen_join} || {} } },
@@ -3522,7 +3519,16 @@ sub _resolved_attrs {
             ? $attrs->{from}[-1][0]{-join_path}
             : []
           ,
-        )
+        );
+    my @attributes = map { delete $_->[2] } @result;
+    # FIXME: there are more attributes than just the where that 
+    # we may want to consider.
+    my @where_clauses = map { $_->{where} } @attributes;
+    $attrs->{where} = $self->_stack_cond($attrs->{where}, @where_clauses) if @where_clauses;
+    $attrs->{from} =    # have to copy here to avoid corrupting the original
+      [
+        @{ $attrs->{from} },
+        @result,
       ];
   }
 
